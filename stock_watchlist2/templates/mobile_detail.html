@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="min-h-screen bg-slate-950 text-white">
+
+    <div class="p-4 border-b border-slate-800">
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="text-slate-400"
+        >
+            ← 戻る
+        </a>
+
+    </div>
+
+    <div class="p-4 space-y-4">
+
+        <div class="bg-slate-900 rounded-2xl p-5">
+
+            <div class="text-2xl font-bold">
+                {{ stock.ticker }}
+            </div>
+
+            <div class="text-slate-400 mt-1">
+                {{ stock.name }}
+            </div>
+
+            <div class="text-3xl font-bold mt-4">
+                {{ stock.current_price }}
+            </div>
+
+            <div class="mt-2">
+                前日終値: {{ stock.previous_close }}
+            </div>
+
+            <div>
+                前日比: {{ stock.change }}
+            </div>
+
+            <div>
+                前日比(%): {{ stock.change_percent }}
+            </div>
+
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl p-5">
+
+            <h2 class="font-semibold mb-4">
+                保有情報
+            </h2>
+
+            {% if item.shares %}
+
+                <div>
+                    評価額:
+                    {{ stock.current_price * item.shares }}
+                </div>
+
+            {% else %}
+
+                <div>
+                    評価額: -
+                </div>
+
+            {% endif %}
+
+            {% if item.shares and item.purchase_price %}
+
+                <div class="mt-2">
+                    含み損益:
+                    {{
+                        (stock.current_price - item.purchase_price)
+                        * item.shares
+                    }}
+                </div>
+
+                <div class="mt-2">
+                    損益率:
+                    {{
+                        (
+                            (stock.current_price - item.purchase_price)
+                            / item.purchase_price
+                        ) * 100
+                    }}
+                </div>
+
+            {% else %}
+
+                <div class="mt-2">
+                    含み損益: -
+                </div>
+
+                <div class="mt-2">
+                    損益率: -
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl p-5">
+
+            <div class="flex gap-2 mb-4">
+
+                <button
+                    type="button"
+                    class="period-btn px-3 py-2 bg-slate-800 rounded-lg"
+                    data-period="1m"
+                    data-ticker="{{ stock.ticker }}"
+                >
+                    1ヶ月
+                </button>
+
+                <button
+                    type="button"
+                    class="period-btn px-3 py-2 bg-slate-800 rounded-lg"
+                    data-period="3m"
+                    data-ticker="{{ stock.ticker }}"
+                >
+                    3ヶ月
+                </button>
+
+                <button
+                    type="button"
+                    class="period-btn px-3 py-2 bg-slate-800 rounded-lg"
+                    data-period="1y"
+                    data-ticker="{{ stock.ticker }}"
+                >
+                    1年
+                </button>
+
+            </div>
+
+            <canvas
+                id="chart"
+                data-ticker="{{ stock.ticker }}"
+            ></canvas>
+
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl p-5">
+
+            <div>
+                高値: {{ stock.high }}
+            </div>
+
+            <div class="mt-2">
+                安値: {{ stock.low }}
+            </div>
+
+            <div class="mt-2">
+                始値: {{ stock.open }}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

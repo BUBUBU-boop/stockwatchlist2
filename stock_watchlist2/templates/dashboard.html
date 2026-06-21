@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="flex min-h-screen bg-slate-950 text-white">
+
+    <aside class="hidden lg:flex w-80 flex-col bg-slate-900 border-r border-slate-800">
+
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-xl font-bold">
+                Stock Watchlist
+            </h1>
+        </div>
+
+        <div class="p-6">
+            <form
+                method="post"
+                action="{{ url_for('add_ticker') }}"
+                class="flex gap-2"
+            >
+                <input
+                    type="text"
+                    name="ticker"
+                    placeholder="NVDA"
+                    class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
+                >
+
+                <button
+                    type="submit"
+                    class="bg-blue-600 px-4 rounded-lg"
+                >
+                    追加
+                </button>
+            </form>
+        </div>
+
+        <div class="px-6">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-2 bg-red-500/10 border border-red-500 text-red-400 rounded-lg px-3 py-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+
+            {% for item in items %}
+
+<a
+    href="{{ url_for('dashboard', ticker=item.record.ticker) }}"
+    class="block px-5 py-4 border-b border-slate-800 hover:bg-slate-800 {% if item.record.ticker == selected_ticker %}bg-slate-800{% endif %}"
+>
+    <div class="font-semibold">
+        {{ item.record.ticker }}
+    </div>
+
+    <div class="text-sm text-slate-400">
+        {{ item.stock.name }}
+    </div>
+
+    <div class="text-sm mt-1">
+        {% if item.stock.currency == "JPY" %}
+{{ item.stock.currency_symbol }}{{ "{:,.0f}".format(item.stock.current_price) }}
+{% else %}
+{{ item.stock.currency_symbol }}{{ "{:,.2f}".format(item.stock.current_price) }}
+{% endif %}
+    </div>
+</a>
+
+{% endfor %}
+
+        </div>
+
+        <div class="border-t border-slate-800 p-5">
+
+            <div class="flex items-center gap-3">
+
+                <div
+                    class="avatar-circle w-12 h-12 rounded-full flex items-center justify-center font-bold"
+                    data-name="{{ user.display_name }}"
+                >
+                    {{ user.display_name[0].upper() }}
+                </div>
+
+                <div>
+                    <div class="font-medium">
+                        {{ user.display_name }}
+                    </div>
+
+                    <div class="text-sm text-slate-400">
+                        {{ user.email }}
+                    </div>
+                </div>
+
+            </div>
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="block mt-4 text-sm text-slate-400"
+            >
+                ログアウト
+            </a>
+
+        </div>
+
+    </aside>
+
+    <main class="flex-1 p-6">
+
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+            <div class="bg-slate-900 rounded-xl p-5">
+                <div class="text-slate-400 text-sm">登録銘柄数</div>
+                <div class="text-3xl font-bold">{{ registered_count }}</div>
+            </div>
+
+            <div class="bg-slate-900 rounded-xl p-5">
+                <div class="text-slate-400 text-sm">上昇銘柄数</div>
+                <div class="text-3xl font-bold">{{ rising_count }}</div>
+            </div>
+
+            <div class="bg-slate-900 rounded-xl p-5">
+                <div class="text-slate-400 text-sm">下落銘柄数</div>
+                <div class="text-3xl font-bold">{{ falling_count }}</div>
+            </div>
+
+            <div class="bg-slate-900 rounded-xl p-5">
+                <div class="text-slate-400 text-sm">総評価額</div>
+                <div class="text-3xl font-bold">{{ total_value }}</div>
+            </div>
+
+        </div>
+
+        {% if items %}
+
+        {% set selected_ns = namespace(value=items[0]) %}
+
+{% for item in items %}
+    {% if item.record.ticker == selected_ticker %}
+        {% set selected_ns.value = item %}
+    {% endif %}
+{% endfor %}
+
+{% set selected = selected_ns.value %}
+
+        <div class="grid lg:grid-cols-3 gap-6">
+
+            <div class="lg:col-span-2 space-y-6">
+
+                <div class="bg-slate-900 rounded-2xl p-6">
+
+                    <div class="text-3xl font-bold">
+                        {{ selected.record.ticker }}
+                    </div>
+
+                    <div class="text-slate-400">
+                        {{ selected.stock.name }}
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4 mt-6">
+
+                        <div>
+                            <div class="text-slate-400 text-sm">現在価格</div>
+                            <div>{% if selected.stock.currency == "JPY" %}{{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(selected.stock.current_price) }}{% else %}{{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(selected.stock.current_price) }}{% endif %}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">前日終値</div>
+                            <div>{% if selected.stock.currency == "JPY" %}{{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(selected.stock.previous_close) }}{% else %}{{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(selected.stock.previous_close) }}{% endif %}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">前日比</div>
+                            <div>{% if selected.stock.currency == "JPY" %}
+{{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(selected.stock.change) }}
+{% else %}
+{{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(selected.stock.change) }}
+{% endif %}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">前日比(%)</div>
+                            <div>{{ "{:.2f}".format(selected.stock.change_percent) }}%</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">高値</div>
+                            <div>{% if selected.stock.currency == "JPY" %}{{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(selected.stock.high) }}{% else %}{{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(selected.stock.high) }}{% endif %}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">安値</div>
+                            <div>{% if selected.stock.currency == "JPY" %}{{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(selected.stock.low) }}{% else %}{{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(selected.stock.low) }}{% endif %}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">始値</div>
+                            <div>{% if selected.stock.currency == "JPY" %}{{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(selected.stock.open) }}{% else %}{{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(selected.stock.open) }}{% endif %}</div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="bg-slate-900 rounded-2xl p-6">
+
+                    <div class="flex gap-2 mb-4">
+
+                        <button
+                            type="button"
+                            class="period-btn px-3 py-2 bg-slate-800 rounded-lg"
+                            data-ticker="{{ selected.record.ticker }}"
+                            data-period="1m"
+                        >
+                            1ヶ月
+                        </button>
+
+                        <button
+                            type="button"
+                            class="period-btn px-3 py-2 bg-slate-800 rounded-lg"
+                            data-ticker="{{ selected.record.ticker }}"
+                            data-period="3m"
+                        >
+                            3ヶ月
+                        </button>
+
+                        <button
+                            type="button"
+                            class="period-btn px-3 py-2 bg-slate-800 rounded-lg"
+                            data-ticker="{{ selected.record.ticker }}"
+                            data-period="1y"
+                        >
+                            1年
+                        </button>
+
+                    </div>
+
+                    <div class="h-96">
+                        <canvas
+                            id="chart"
+                            data-ticker="{{ selected.record.ticker }}"
+                        ></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <div class="bg-slate-900 rounded-2xl p-6">
+
+                    <h2 class="font-semibold mb-4">
+                        保有情報
+                    </h2>
+
+                    <form
+                        method="post"
+                        action="{{ url_for('update_shares', item_id=selected.record.id) }}"
+                        class="mb-4"
+                    >
+                        <label class="block text-sm text-slate-400 mb-2">
+                            保有株数
+                        </label>
+
+                        <div class="flex gap-2">
+                            <input
+                                type="number"
+                                min="1"
+                                name="shares"
+                                value="{{ selected.record.shares or '' }}"
+                                class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
+                            >
+
+                            <button
+                                type="submit"
+                                class="bg-blue-600 px-4 rounded-lg"
+                            >
+                                保存
+                            </button>
+                        </div>
+                    </form>
+
+                    <form
+                        method="post"
+                        action="{{ url_for('update_purchase_price', item_id=selected.record.id) }}"
+                        class="mb-6"
+                    >
+                        <label class="block text-sm text-slate-400 mb-2">
+                            取得単価
+                        </label>
+
+                        <div class="flex gap-2">
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                name="purchase_price"
+                                value="{{ selected.record.purchase_price or '' }}"
+                                class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
+                            >
+
+                            <button
+                                type="submit"
+                                class="bg-blue-600 px-4 rounded-lg"
+                            >
+                                保存
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="space-y-4">
+
+                        <div>
+                            <div class="text-slate-400 text-sm">評価額</div>
+                            <div>
+                                {% if selected.valuation is not none %}
+    {% if selected.stock.currency == "JPY" %}
+        {{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(selected.valuation) }}
+    {% else %}
+        {{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(selected.valuation) }}
+    {% endif %}
+{% else %}
+-
+{% endif %}
+                            </div>
+                        </div>
+
+                        {% if selected.record.shares and selected.record.purchase_price %}
+
+                        <div>
+                            <div class="text-slate-400 text-sm">含み損益</div>
+                            <div>
+                                {% set profit = (selected.stock.current_price - selected.record.purchase_price) * selected.record.shares %}
+{% if selected.stock.currency == "JPY" %}
+{{ selected.stock.currency_symbol }}{{ "{:,.0f}".format(profit) }}
+{% else %}
+{{ selected.stock.currency_symbol }}{{ "{:,.2f}".format(profit) }}
+{% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">損益率</div>
+                            <div>
+                               {{ "{:.2f}".format(
+    (
+        (selected.stock.current_price - selected.record.purchase_price)
+        / selected.record.purchase_price
+    ) * 100
+) }}%
+                            </div>
+                        </div>
+
+                        {% else %}
+
+                        <div>
+                            <div class="text-slate-400 text-sm">含み損益</div>
+                            <div>-</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400 text-sm">損益率</div>
+                            <div>-</div>
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+                    <form
+                        method="post"
+                        action="{{ url_for('delete_ticker', item_id=selected.record.id) }}"
+                        class="mt-6"
+                        onsubmit="return confirm('この銘柄を削除しますか？')"
+                    >
+                        <button
+                            type="submit"
+                            class="w-full bg-red-600 rounded-lg py-2"
+                        >
+                            削除
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </main>
+
+</div>
+
+{% endblock %}

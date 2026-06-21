@@ -1,0 +1,50 @@
+body {
+    margin: 0;
+}
+
+.avatar-circle {
+    color: #ffffff;
+}
+
+.stock-positive {
+    color: #22c55e;
+}
+
+.stock-negative {
+    color: #ef4444;
+}
+
+.stock-neutral {
+    color: #94a3b8;
+}
+
+.watchlist-item {
+    cursor: pointer;
+}
+
+.watchlist-item:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.summary-card {
+    min-height: 120px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+
+.mobile-stock-card {
+    cursor: pointer;
+}
+
+.mobile-stock-card:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 1023px) {
+    .desktop-sidebar {
+        display: none;
+    }
+}
